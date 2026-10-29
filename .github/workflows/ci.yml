@@ -1,9 +1,7 @@
 name: Workflow Lint and Secret Checks
 
 on:
-  push:
-    branches:
-      - feature/wordpress
+  workflow_call:
 
 permissions:
   contents: read

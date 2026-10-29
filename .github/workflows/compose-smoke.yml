@@ -58,3 +58,7 @@ jobs:
         - name: Remove CI containers and volumes
           if: ${{ always() && steps.start.outcome == 'success' }}
           run: docker compose down --volumes --remove-orphans
+
+    quality-checks:
+      needs: smoke-test
+      uses: ./.github/workflows/ci.yml
