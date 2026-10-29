@@ -1,0 +1,45 @@
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    stop_grace_period: 2m
+
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+
+    depends_on:
+      - db
+    volumes:
+
+      - ./wp-data:/var/www/html
+
+    networks:
+      - wordpress-network
+
+
+  db:
+    image: mysql:8.4.13
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - wordpress-network
+
+volumes:
+  wp-data:
+  db-data:
+
+networks:
+  wordpress-network:
+    driver: bridge
