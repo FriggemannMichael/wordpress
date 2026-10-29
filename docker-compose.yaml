@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wordpress:latest
+    image: wordpress:7.1.4-php8.4-apache  #Pin WordPress; verify PHP 8.4.27 or newer before deployment.
     container_name: wordpress
     ports:
       - "8080:80"
