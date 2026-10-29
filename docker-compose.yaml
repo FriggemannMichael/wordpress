@@ -17,7 +17,7 @@ services:
       - db
     volumes:
 
-      - ./wp-data:/var/www/html
+      - wp-data:/var/www/html
 
     networks:
       - wordpress-network
