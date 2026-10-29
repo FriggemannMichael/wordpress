@@ -1,0 +1,7 @@
+# Development environment
+.idea/
+.venv/
+
+# Local environment variables
+.env
+*.env
