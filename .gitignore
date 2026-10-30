@@ -8,3 +8,6 @@
 
 #Test
 demo.sh
+
+# Local deploy script
+deploy.sh
