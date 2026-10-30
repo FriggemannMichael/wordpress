@@ -1,0 +1,64 @@
+name: Compose Smoke Test
+
+on:
+    push:
+      branches:
+        - feature/wordpress
+
+permissions:
+    contents: read
+
+jobs:
+    smoke-test:
+      runs-on: ubuntu-latest
+      timeout-minutes: 10
+
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          with:
+            persist-credentials: false
+
+        - name: Create temporary CI environment
+          run: |
+            {
+              echo "DB_NAME=wordpress"
+              echo "DB_USER=wordpress"
+              echo "DB_PASSWORD=$(openssl rand -hex 24)"
+              echo "DB_ROOT_PASSWORD=$(openssl rand -hex 24)"
+            } > .env
+
+        - name: Validate Compose configuration
+          run: docker compose config --quiet
+
+        - name: Start WordPress and MySQL
+          id: start
+          run: docker compose up -d
+
+        - name: Wait for WordPress installer
+          run: |
+            for ATTEMPT in {1..30}; do
+              if curl --fail --silent --output /dev/null http://127.0.0.1:8080/wp-admin/install.php; then
+                echo "WordPress installer is reachable."
+                exit 0
+              fi
+              echo "Waiting for WordPress (${ATTEMPT}/30)..."
+              sleep 5
+            done
+            echo "WordPress did not become reachable." >&2
+            exit 1
+
+        - name: Show container status
+          run: docker compose ps
+
+        - name: Show logs on failure
+          if: ${{ failure() && steps.start.outcome == 'success' }}
+          run: docker compose logs --tail=100
+
+        - name: Remove CI containers and volumes
+          if: ${{ always() && steps.start.outcome == 'success' }}
+          run: docker compose down --volumes --remove-orphans
+
+    quality-checks:
+      needs: smoke-test
+      uses: ./.github/workflows/ci.yml
