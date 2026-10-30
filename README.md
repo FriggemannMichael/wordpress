@@ -24,32 +24,31 @@ This repository runs WordPress 7.1.4 and MySQL 8.4.13 with Docker Compose. It us
 
 ## Quickstart
 
-Run these commands from the repository root. Step 1 differs between PowerShell and Bash; the remaining Docker commands work in both shells.
+Clone the repository and change into it first. All commands use Bash (on Windows: Git Bash or WSL).
 
-1. Copy the example environment file.
+1. Clone the repository and change into it:
 
-   PowerShell (Windows):
-
-   ```powershell
-   Copy-Item .env.example .env
+   ```bash
+   git clone https://github.com/FriggemannMichael/wordpress.git
+   cd wordpress
    ```
 
-   Bash (Linux/macOS):
+2. Copy the example environment file.
 
    ```bash
    cp .env.example .env
    ```
 
-2. Open `.env` and replace **both** password placeholders with different, strong passwords. Keep `DB_NAME=wordpress` and `DB_USER=wordpress` unless you also change the matching MySQL settings in `docker-compose.yaml`.
-3. Validate the Compose configuration, then start the services:
+3. Open `.env` and replace **both** password placeholders with different, strong passwords. Keep `DB_NAME=wordpress` and `DB_USER=wordpress` unless you also change the matching MySQL settings in `docker-compose.yaml`.
+4. Validate the Compose configuration, then start the services:
 
-   ```powershell
+   ```bash
    docker compose config --quiet
    docker compose up -d
    docker compose ps
    ```
 
-4. Open `http://localhost:8080` and complete the WordPress installer. Create a strong administrator password and keep it private. The installer creates the administrator account in the database; it is separate from the database credentials in `.env`.
+5. Open `http://<your_ip>:8080` and complete the WordPress installer. Create a strong administrator password and keep it private. The installer creates the administrator account in the database; it is separate from the database credentials in `.env`.
 
 > [!CAUTION]
 > `.env` contains database passwords and is ignored by Git. Never commit it, replace `.env.example` with real passwords, or share administrator credentials in an issue or log.
@@ -58,13 +57,13 @@ The first start downloads the images and initializes both named volumes. It can 
 
 ## Project structure
 
-| Path | Purpose |
-| --- | --- |
-| `docker-compose.yaml` | Defines the `wordpress` and `db` services, images, port, environment references, network, named volumes, and restart policies. |
-| `.env.example` | Lists the required local variables with password placeholders. Copy it to `.env` before starting Compose. |
-| `.gitignore` | Excludes the local `.env`, virtual environment, and IDE files from Git. |
-| `docs/Wordpress Checkliste.pdf` | Project submission requirements and verification checklist. |
-| `README.md` | Setup, operation, configuration, testing, and deployment instructions. |
+| Path                            | Purpose                                                                                                                        |
+|---------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| `docker-compose.yaml`           | Defines the `wordpress` and `db` services, images, port, environment references, network, named volumes, and restart policies. |
+| `.env.example`                  | Lists the required local variables with password placeholders. Copy it to `.env` before starting Compose.                      |
+| `.gitignore`                    | Excludes the local `.env`, virtual environment, and IDE files from Git.                                                        |
+| `docs/Wordpress Checkliste.pdf` | Project submission requirements and verification checklist.                                                                    |
+| `README.md`                     | Setup, operation, configuration, testing, and deployment instructions.                                                         |
 
 The local `.env` file is not tracked. Docker manages `wp-data` and `db-data` outside the repository; there is no generated WordPress directory to commit.
 
@@ -74,12 +73,12 @@ The local `.env` file is not tracked. Docker manages `wp-data` and `db-data` out
 
 Compose reads these variables from `.env` in the repository root:
 
-| Variable | Expected value | Effect |
-| --- | --- | --- |
-| `DB_NAME` | `wordpress` | Database name used by WordPress. It must match `MYSQL_DATABASE` in `docker-compose.yaml`. |
-| `DB_USER` | `wordpress` | Database user used by WordPress. It must match `MYSQL_USER` in `docker-compose.yaml`. |
-| `DB_PASSWORD` | A strong private value | Password shared by the WordPress database connection and the MySQL application user. |
-| `DB_ROOT_PASSWORD` | A different strong private value | Password for the MySQL root account. WordPress does not use this account. |
+| Variable           | Expected value                   | Effect                                                                                    |
+|--------------------|----------------------------------|-------------------------------------------------------------------------------------------|
+| `DB_NAME`          | `wordpress`                      | Database name used by WordPress. It must match `MYSQL_DATABASE` in `docker-compose.yaml`. |
+| `DB_USER`          | `wordpress`                      | Database user used by WordPress. It must match `MYSQL_USER` in `docker-compose.yaml`.     |
+| `DB_PASSWORD`      | A strong private value           | Password shared by the WordPress database connection and the MySQL application user.      |
+| `DB_ROOT_PASSWORD` | A different strong private value | Password for the MySQL root account. WordPress does not use this account.                 |
 
 `WORDPRESS_DB_HOST` is `db:3306`: `db` is the Compose service name, resolved on the shared `wordpress-network`. The database has no published host port. To publish WordPress on another host port, change the left side of `8080:80` under `wordpress.ports`, then use that port in the browser and VM firewall rules.
 
@@ -91,7 +90,7 @@ Compose pulls `wordpress:7.1.4-php8.4-apache` and `mysql:8.4.13`; it does not bu
 
 The local WordPress image was checked with PHP **8.4.27**. The PHP version must be checked again in the image pulled on the VM before the site goes live:
 
-```powershell
+```bash
 docker compose exec wordpress php -v
 ```
 
@@ -101,7 +100,7 @@ For the October 2026 PHP security release, PHP 8.4 must be **8.4.27 or newer**. 
 
 Run each command separately from the repository root:
 
-```powershell
+```bash
 docker compose up -d
 docker compose ps
 docker compose logs -f wordpress
@@ -125,12 +124,12 @@ To verify persistence, create a WordPress draft, run `docker compose down` follo
 
 Check the Compose structure and running services:
 
-```powershell
+```bash
 docker compose config --quiet
 docker compose ps
 ```
 
-Open `http://localhost:8080`, sign in at `/wp-admin`, and navigate the dashboard. Confirm that the WordPress container reports PHP 8.4.27 or newer. Test a saved draft after recreating the containers as described above.
+Open `http://<your_ip>:8080`, sign in at `/wp-admin`, and navigate the dashboard. Confirm that the WordPress container reports PHP 8.4.27 or newer. Test a saved draft after recreating the containers as described above.
 
 Locally, both services were also confirmed to restart automatically after their main processes exited inside the containers. A manual `docker kill` is not a valid test of `unless-stopped`, because Docker treats it as a manual stop.
 
